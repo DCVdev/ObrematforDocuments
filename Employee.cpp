@@ -1,5 +1,5 @@
 
-#include "empleado.h"
+#include "Employee.h"
 
 void add_employee(Employee &emp, int id, std::string &user, std::string &password){
     std::cout << "Recuerda que los numeros que empiezan en el id es el tipo de empleado que vas a crear"<<std::endl;
