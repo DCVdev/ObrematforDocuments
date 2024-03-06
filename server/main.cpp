@@ -3,14 +3,14 @@
 #include <stdio.h>
 #include <iostream>
 #include <vector>
-#include <fstream>
+//#include <fstream>
 #include "user.h"
 //#include "user.h"
 //#include "treat_file.h"
 int main(){
     WSADATA wsadata;
     int initialize;
-    std::fstream file("users.txt",std::ios::in, std::ios::out);
+    //std::fstream file("users.txt",std::ios::in, std::ios::out);
     std::vector<char> buffer(2);
     //Initialize Winsock winsock
     initialize = WSAStartup(MAKEWORD(2,2), &wsadata);
@@ -56,22 +56,22 @@ int main(){
     closesocket(listenSocket);
     WSACleanup();
     }*/
-    while(true){
-        clientSocket = accept(listenSocket, (sockaddr*)&clientinfo, &clientinfosize);
-        if(clientSocket == INVALID_SOCKET){
-            std::cerr << "Invalid socket" << std::endl;
-            continue;
-        }
+    clientSocket = accept(listenSocket, (sockaddr*)&clientinfo, &clientinfosize);
+    if(clientSocket == INVALID_SOCKET){
+        std::cerr << "Invalid socket" << std::endl;
     }
-
     char recvbuff[512];
     int recvbuflen = 512;
     int bytesreceived = recv(clientSocket, recvbuff,recvbuflen,0);
-      if (bytesreceived > 0) {
-        // Procesar los datos recibidos y enviar una respuesta
-        std::string response = "Mensaje recibido: " + std::string(recvbuff, bytesreceived);
-        send(clientSocket, response.c_str(), response.length(), 0);
+    for(int i = 0; i<recvbuflen;i++){
+        printf("%s",recvbuff[i]);
     }
+    if (bytesreceived > 0) {
+    // Procesar los datos recibidos y enviar una respuesta
+    std::string response = "Mensaje recibido: " + std::string(recvbuff, bytesreceived);
+    send(clientSocket, response.c_str(), response.length(), 0);
+}
+
        closesocket(clientSocket);
        WSACleanup();
        return 0;
