@@ -17,10 +17,11 @@ int main(int argc, char **argv)
     SOCKET connectSocket;
 
     int recvbuflen = 512;
-    const char* buffer = "I am sending something, receive it and send me";
+
     char recvbuff[512];
 
     char continues = 's';
+    std::string input;
     //Initialize
     make = WSAStartup(MAKEWORD(2,2), &wsaData);
     if(make!=0){
@@ -41,9 +42,12 @@ int main(int argc, char **argv)
     // Connect to server
     make = connect(connectSocket,ptr->ai_addr,(int)ptr->ai_addrlen);
     // Manage a error
-    //freeaddrinfo(result);
+    freeaddrinfo(result);
 
     do{
+        std::cout << "Introduce tu nombre" << std::endl;
+        std::getline(std::cin,input);
+        const char *buffer = input.c_str();
         //Send data
         make = send(connectSocket,buffer,(int)strlen(buffer),0);
         if (make == SOCKET_ERROR) {
@@ -54,14 +58,19 @@ int main(int argc, char **argv)
         }
         //Receive data
         make = recv(connectSocket,recvbuff,recvbuflen,0);
-        if (make > 0)
-            printf("Finally I receive something: %d\n", make);
+        if (make > 0){
+            recvbuff[make] = '\0'; // Asegúrate de que el buffer sea una cadena válida
+            printf("Finally I receive something: %s\n", recvbuff);
+        }
         else if (make == 0)
             printf("Connection closed\n");
         else
             printf("receive failed: %d\n", WSAGetLastError());
         std::cout << "Do you want to continue -s/n-" << std::endl;
         std::cin >> continues;
+        input.clear();
+        std::cin.ignore();
+
     }while(continues == 's');
     make = shutdown(connectSocket,SD_SEND);
     closesocket(connectSocket);
