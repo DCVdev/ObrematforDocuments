@@ -7,72 +7,59 @@
 #include "user.h"
 //#include "user.h"
 //#include "treat_file.h"
+#define DEFAULT_PORT "8080"
 int main(){
     WSADATA wsadata;
-    int initialize;
-    //std::fstream file("users.txt",std::ios::in, std::ios::out);
-    std::vector<char> buffer(2);
-    //Initialize Winsock winsock
-    initialize = WSAStartup(MAKEWORD(2,2), &wsadata);
-    if(initialize!=0){
-        printf("Problem with start: %d\n", initialize);
-        return 1;
-    }
-    SOCKET listenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if(listenSocket == INVALID_SOCKET){
-        std::cerr << "Erro del socket: " << WSAGetLastError() << std::endl;
-        WSACleanup();
-        return 1;
-    }
-    sockaddr_in service;
-    //Secure for clear the memory in service
-    memset(&service,0, sizeof(service));
-    //Create the structure of the socket
-    service.sin_family = AF_INET;
-    service.sin_addr.s_addr= INADDR_ANY;
-    service.sin_port = htons(8080);
+    int make, sendmake;
 
-    if(bind(listenSocket, (SOCKADDR*)&service, sizeof(service)) == SOCKET_ERROR) {
-        closesocket(listenSocket);
-        std::cerr << "Error listening socket" << std::endl;
-        WSACleanup();
-        return 1;
-    }
+    struct addrinfo *result = NULL, *ptr = NULL, hints;
 
-    if(listen(listenSocket, SOMAXCONN) == SOCKET_ERROR){
-        closesocket(listenSocket);
-        std::cerr << "Error listening socket" << std::endl;
-        WSACleanup();
-        return 1;
-    }
+    SOCKET listenSocket, clientSocket;
 
-
-    SOCKET clientSocket;
-    sockaddr_in clientinfo;
-    int clientinfosize = sizeof(clientinfo);
-    /*clientSocket = accept(listenSocket, NULL,NULL);
-    if (clientSocket == INVALID_SOCKET) {
-    printf("accept failed: %d\n", WSAGetLastError());
-    closesocket(listenSocket);
-    WSACleanup();
-    }*/
-    clientSocket = accept(listenSocket, (sockaddr*)&clientinfo, &clientinfosize);
-    if(clientSocket == INVALID_SOCKET){
-        std::cerr << "Invalid socket" << std::endl;
-    }
     char recvbuff[512];
     int recvbuflen = 512;
-    int bytesreceived = recv(clientSocket, recvbuff,recvbuflen,0);
-    for(int i = 0; i<recvbuflen;i++){
-        printf("%s",recvbuff[i]);
-    }
-    if (bytesreceived > 0) {
-    // Procesar los datos recibidos y enviar una respuesta
-    std::string response = "Mensaje recibido: " + std::string(recvbuff, bytesreceived);
-    send(clientSocket, response.c_str(), response.length(), 0);
-}
 
-       closesocket(clientSocket);
-       WSACleanup();
-       return 0;
+    make = WSAStartup(MAKEWORD(2,2), &wsadata);
+    //sendmake = WSAStartup(MAKEWORD(2,2),&wsadata);
+    memset(&hints,0,sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+    hints.ai_flags = AI_PASSIVE;
+
+    make = getaddrinfo(NULL,DEFAULT_PORT,&hints,&result);
+
+    listenSocket = socket(result->ai_family,result->ai_socktype,result->ai_protocol);
+
+    make = bind(listenSocket,result->ai_addr,result->ai_addrlen);
+    freeaddrinfo(result);
+
+    if(listen(listenSocket,SOMAXCONN) == SOCKET_ERROR){
+        printf( "Listen failed with error: %d\n", WSAGetLastError() );
+        closesocket(listenSocket);
+        WSACleanup();
+        return 1;
+    }
+    clientSocket = accept(listenSocket, NULL, NULL);
+    if (clientSocket == INVALID_SOCKET) {
+        printf("accept failed: %d\n", WSAGetLastError());
+        closesocket(listenSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    do{
+        make = recv(clientSocket,recvbuff,recvbuflen,0);
+        if(make>0){
+            printf("I receive : %s", recvbuff);
+            sendmake = send(clientSocket,recvbuff,make,0);
+        }
+        else{
+            printf("recv failed: %d\n", WSAGetLastError());
+            closesocket(clientSocket);
+            WSACleanup();
+            return 1;
+        }
+    }while(make>0);
+    return 0;
 }
