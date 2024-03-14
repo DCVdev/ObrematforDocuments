@@ -14,13 +14,10 @@ int main(){
 
     struct addrinfo *result = NULL, *ptr = NULL, hints;
 
-    SOCKET listenSocket, clientSocket;
+    SOCKET listenSocket;
 
-    char recvbuff[512];
-    int recvbuflen = 512;
 
     make = WSAStartup(MAKEWORD(2,2), &wsadata);
-    //sendmake = WSAStartup(MAKEWORD(2,2),&wsadata);
     memset(&hints,0,sizeof(hints));
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
@@ -40,26 +37,36 @@ int main(){
         WSACleanup();
         return 1;
     }
-    clientSocket = accept(listenSocket, NULL, NULL);
-    if (clientSocket == INVALID_SOCKET) {
-        printf("accept failed: %d\n", WSAGetLastError());
-        closesocket(listenSocket);
-        WSACleanup();
-        return 1;
-    }
-
-    do{
-        make = recv(clientSocket,recvbuff,recvbuflen,0);
-        if(make>0){
-            printf("I receive : %s", recvbuff);
-            sendmake = send(clientSocket,recvbuff,make,0);
+    std::vector<SOCKET> clientSockets;
+    while (true){
+        SOCKET clientSocket = accept(listenSocket, nullptr, nullptr);
+        if (clientSocket != INVALID_SOCKET) {
+             clientSockets.push_back(clientSocket);
         }
-        else{
-            printf("recv failed: %d\n", WSAGetLastError());
-            closesocket(clientSocket);
-            WSACleanup();
-            return 1;
+        for(auto& socket : clientSockets){
+            char recvbuff[512];
+            ZeroMemory(recvbuff, 512);
+            make = recv(socket,recvbuff,512,0);
+            if(make>0){
+                printf("I receive : %s", recvbuff);
+                sendmake = send(socket,recvbuff,make,0);
+            }
+            else{
+                std::cout << "Desconecto" << std::endl;
+                printf("Socket_error: %d\n", WSAGetLastError());
+                closesocket(socket);
+                socket = INVALID_SOCKET;
+            }
         }
-    }while(make>0);
+        for (int i = clientSockets.size() - 1; i >= 0; --i) {
+            if (clientSockets[i] == INVALID_SOCKET) {
+                closesocket(clientSockets[i]);
+                clientSockets.erase(clientSockets.begin() + i);
+            }
+        }
+    }//Fin del bucle while(true)
+    std::cout << "Close the socket" << std::endl;
+    closesocket(listenSocket);
+    WSACleanup();
     return 0;
 }
