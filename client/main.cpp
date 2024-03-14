@@ -5,7 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#define DEFAULT_PORT "8080"
+#define DEFAULT_PORT "1000"
 
 int main(int argc, char **argv)
 {

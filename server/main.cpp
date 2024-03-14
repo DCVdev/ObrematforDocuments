@@ -1,15 +1,11 @@
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <stdio.h>
-#include <iostream>
-#include <vector>
-//#include <fstream>
-#include "user.h"
-//#include "user.h"
-//#include "treat_file.h"
-#define DEFAULT_PORT "8080"
+#include "socket.h"
 int main(){
-    WSADATA wsadata;
+    Server servidor(1000);
+    servidor.start();
+
+    return 0;
+
+    /*WSADATA wsadata;
     int make, sendmake;
 
     struct addrinfo *result = NULL, *ptr = NULL, hints;
@@ -37,8 +33,10 @@ int main(){
         WSACleanup();
         return 1;
     }
+    std::cout << "Conectando" << std::endl;
     std::vector<SOCKET> clientSockets;
     while (true){
+         std::cout << "Conectado" << std::endl;
         SOCKET clientSocket = accept(listenSocket, nullptr, nullptr);
         if (clientSocket != INVALID_SOCKET) {
              clientSockets.push_back(clientSocket);
@@ -68,5 +66,5 @@ int main(){
     std::cout << "Close the socket" << std::endl;
     closesocket(listenSocket);
     WSACleanup();
-    return 0;
+    return 0;*/
 }
